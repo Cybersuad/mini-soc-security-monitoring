@@ -1,0 +1,11 @@
+
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+| rex field=Message "Kontoen pålogging mislyktes for:[\s\S]*?Kontonavn:\s*(?<account>[^\r\n]+)"
+| eval account=trim(account)
+| where isnotnull(account) AND account!="-"
+| bin _time span=5m
+| stats count as Failed_Attempts by _time, account
+| where Failed_Attempts >= 5
+| eval Detection="SOC-001", Severity="Medium", Status="INVESTIGATE"
+| table _time Detection account Failed_Attempts Severity Status
+| sort - _time

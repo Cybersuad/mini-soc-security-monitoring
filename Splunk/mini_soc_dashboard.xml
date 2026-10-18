@@ -1,0 +1,170 @@
+<dashboard version="1.1" theme="dark">
+  <label>Mini-SOC Security Monitoring</label>
+  <description>Windows Security Monitoring and Threat Detection</description>
+
+  <!-- ROW 1: SECURITY OVERVIEW -->
+  <row>
+    <panel>
+      <title>Total Security Events</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security"
+| stats count as Total
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="rangeColors">["0x53a051","0x118832","0x118832","0x118832","0x118832"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+
+    <panel>
+      <title>Failed Login Attempts</title>
+      <single>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+| stats count as Failed
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="rangeColors">["0xd94e17","0xd94e17","0xd94e17","0xd94e17","0xd94e17"]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ROW 2: AUTHENTICATION ACTIVITY -->
+  <row>
+    <panel>
+      <title>Authentication Activity Over Time</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" (EventCode=4624 OR EventCode=4625)
+| eval Login_Status=if(EventCode=4624,"Successful","Failed")
+| timechart span=1h count by Login_Status
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ROW 3: TOP FAILED LOGIN ACCOUNTS -->
+  <row>
+    <panel>
+      <title>Top Failed Login Accounts</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+| rex field=Message "Kontoen pålogging mislyktes for:[\s\S]*?Kontonavn:\s*(?&lt;target_account&gt;[^\r\n]+)"
+| eval target_account=trim(target_account)
+| where isnotnull(target_account) AND target_account!="-"
+| stats count as Failed_Attempts by target_account
+| sort - Failed_Attempts
+| head 10
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ROW 4: SECURITY INVESTIGATION -->
+  <row>
+    <panel>
+      <title>Security Investigation - Failed Logins</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+| rex field=Message "Kontoen pålogging mislyktes for:[\s\S]*?Kontonavn:\s*(?&lt;account&gt;[^\r\n]+)"
+| rex field=Message "Påloggingstype:\s*(?&lt;logon_type&gt;\d+)"
+| rex field=Message "Adresse til kildenettverk:\s*(?&lt;source_ip&gt;[^\r\n]+)"
+| eval account=trim(account), source_ip=trim(source_ip)
+| table _time account logon_type source_ip
+| sort - _time
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ROW 5: SOC-001 BRUTE-FORCE DETECTION -->
+  <row>
+    <panel>
+      <title>SOC-001 | Brute-Force Detection</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+| rex field=Message "Kontoen pålogging mislyktes for:[\s\S]*?Kontonavn:\s*(?&lt;account&gt;[^\r\n]+)"
+| eval account=trim(account)
+| where isnotnull(account) AND account!="-"
+| bin _time span=5m
+| stats count as Failed_Attempts by _time, account
+| where Failed_Attempts &gt;= 5
+| eval Detection="SOC-001", Severity="Medium", Status="INVESTIGATE"
+| table _time Detection account Failed_Attempts Severity Status
+| appendpipe [
+    stats count as matches
+    | where matches=0
+    | eval Detection="SOC-001", Status="NO DETECTIONS"
+    | table Detection Status
+  ]
+| sort - _time
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ROW 6: PRIVILEGED LOGONS AND EVENT DISTRIBUTION -->
+  <row>
+    <panel>
+      <title>Privileged Logon Activity - Event 4672</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4672
+| timechart span=1h count as Privileged_Events
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+
+    <panel>
+      <title>Security Event Distribution</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security"
+| stats count by EventCode
+| sort - count
+| head 10
+          </query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>

@@ -1,0 +1,13 @@
+.idea/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+authentication_logs.csv
+*.evtx
+*.log
+
+.env
+user-seed.conf
+passwd
