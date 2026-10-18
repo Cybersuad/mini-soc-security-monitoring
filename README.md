@@ -2,21 +2,19 @@
 # Mini-SOC | Security Monitoring & Threat Detection
 
 A personal cybersecurity project focused on building a small Security Operations Center (SOC) environment using Splunk Enterprise and Windows Security Event Logs.
-
 ## Project Screenshots
 
 ### Security Monitoring Dashboard
 
-![Mini-SOC Security Dashboard](screenshots/dashboard.png)
+![Mini-SOC Security Dashboard](Screenshot/DASHBOARD%20SPLUNK.png)
 
 ### Detection Logic Validation
 
-![SOC-001 Detection Test](screenshots/detection-test.png)
+![SOC-001 Detection Test](Screenshot/DETECTION%20SPLUNK.png)
 
 ### Automated Alert Validation
 
-![Splunk Alert Validation](screenshots/alert-validation.png)
-
+![Splunk Alert Validation](Screenshot/ALERTS%20SPLUNK.png)
 ## Project Overview
 
 The goal of this project was to gain hands-on experience with security monitoring, log analysis, threat detection, and automated alerting.
