@@ -7,15 +7,15 @@ A personal cybersecurity project focused on building a small Security Operations
 
 ### Security Monitoring Dashboard
 
-![Mini-SOC Security Dashboard](screenshots/dashboard.png)
+![Mini-SOC Security Dashboard](screenshot/DASHBOARD SPLUNK.png)
 
 ### Detection Logic Validation
 
-![SOC-001 Detection Test](screenshots/detection-test.png)
+![SOC-001 Detection Test](screenshot/DETECTION SPLUNK.png)
 
 ### Automated Alert Validation
 
-![Splunk Alert Validation](screenshots/alert-validation.png)
+![Splunk Alert Validation](screenshot/ALERT SPLUNK.png)
 
 ## Project Overview
 
